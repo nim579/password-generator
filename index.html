@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>Генератор паролей</title>
+        
+        <script type="text/javascript" src="http://yandex.st/jquery/1.8.1/jquery.min.js"></script>
+        <link type="text/css" rel="StyleSheet" href="http://nim579.ru/html/bootstrap/css/bootstrap.css" />
+
+        <script>
+            var pass = {
+                chars: {
+                    custom: null,
+                    upper: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+                    lower: "abcdefghijklmnopqrstuvwxyz",
+                    nums: "0123456789",
+                    symbols: "!_@#$%&*[]+?"
+                },
+                order: {
+                    upper: true,
+                    lower: true,
+                    nums: true,
+                    symbols: false
+                },
+                opt: {
+                    genChars: 10
+                },
+                generate: function(){
+                    var chStr = '';
+                    if(this.order.upper) chStr += this.chars.upper;
+                    if(this.order.lower) chStr += this.chars.lower;
+                    if(this.order.nums) chStr += this.chars.nums;
+                    if(this.order.symbols) chStr += this.chars.symbols;
+                    if(this.chars.custom != null && this.chars.custom != '') chStr = this.chars.custom;
+                    if(chStr != '' && this.opt.genChars != ''){
+                        var chArr = chStr.split('');
+                        var passGenered = ''
+                        for(var i = 0; i<pass.opt.genChars; i++) {
+                            console.log();
+                            passGenered += chArr[Math.floor(Math.random()*chArr.length)] + '';
+                        }
+                        $('.generated').text(passGenered);
+                    } else {
+                        $('.generated').html('<span class="alert alert-error"><strong>Внимание!</strong> Не выбран ни один набор символов для генерации.</span>');
+                    }
+                },
+                init: function(){
+                    if(localStorage.order){
+                        this.order = JSON.parse(localStorage.order);
+                    }
+                    if(localStorage.custom){
+                        this.chars.custom = localStorage.custom;
+                    }
+                    if(localStorage.genChars){
+                        this.opt.genChars = localStorage.genChars;
+                    }
+                    if(this.order.upper){$('#upper').attr('checked','checked');} else {$('#upper').removeAttr('checked');}
+                    if(this.order.lower){$('#lower').attr('checked','checked');} else {$('#lower').removeAttr('checked');}
+                    if(this.order.nums){$('#nums').attr('checked','checked');} else {$('#nums').removeAttr('checked');}
+                    if(this.order.symbols){$('#symbols').attr('checked','checked');} else {$('#symbols').removeAttr('checked');}
+                    if(this.chars.custom != null && this.chars.custom != ''){
+                        $('#upper, #lower, #nums, #symbols').attr('disabled', 'disabled');
+                    }
+                    $('#chars').val(this.chars.custom);
+                    $('#len').val(this.opt.genChars);
+                    pass.generate();
+                    this.listen();
+                },
+                listen: function() {
+                    $('#upper, #lower, #nums, #symbols').click(function() {
+                        pass.order.upper = $('#upper:checked').length;
+                        pass.order.lower = $('#lower:checked').length;
+                        pass.order.nums = $('#nums:checked').length;
+                        pass.order.symbols = $('#symbols:checked').length;
+                        localStorage.order = JSON.stringify({'upper': pass.order.upper, 'lower': pass.order.lower, 'nums': pass.order.nums, 'symbols': pass.order.symbols});
+                        pass.generate();
+                    });
+                    $('#chars').keyup(function(){
+                        pass.chars.custom = $(this).val();
+                        localStorage.custom = pass.chars.custom;
+                        if(pass.chars.custom != null && pass.chars.custom != ''){
+                            $('#upper, #lower, #nums, #symbols').attr('disabled', 'disabled');
+                        } else {
+                            $('#upper, #lower, #nums, #symbols').removeAttr('disabled');
+                        }
+                        pass.generate();
+                    });
+                    $('#len').keyup(function(){
+                        pass.opt.genChars = $(this).val();
+                        localStorage.genChars = pass.opt.genChars;
+                        pass.generate();
+                    });
+                    $('#bGen').click(function(){
+                        pass.generate();
+                    });
+                    $('#LSclear').click(function(){
+                        localStorage.genChars = ''; localStorage.order = ''; localStorage.custom = '';
+                        window.location.reload();
+                    });
+                }
+            }
+            $(function(){
+                pass.init();
+            })
+        </script>
+    </head>
+    <body>
+        <div class="container">
+            <div class="span12" data-spy="scroll">
+                <div class="page-header">
+                    <h1>Генератор паролей</h1>
+                </div>
+                
+                <div class="form-horizontal">
+					<div class="control-group">
+						<label class="control-label" for="chars">Кастомный набор символов</label>
+						<div class="controls">
+						    <input type="text" id="chars" placeholder="Символы">
+						    <span class="help-block">Генерирует пароль из заданого набора символов (можно повторять), любые символы и пробелы.</span>
+						</div>
+					</div>
+					<div class="control-group">
+						<label class="control-label" for="upper">Большие буквы</label>
+						<div class="controls">
+							<input type="checkbox" value="1" id="upper">
+						</div>
+					</div>
+					<div class="control-group">
+						<label class="control-label" for="lower">Маленькие буквы</label>
+						<div class="controls">
+							<input type="checkbox" value="1" id="lower">
+						</div>
+					</div>
+					<div class="control-group">
+						<label class="control-label" for="nums">Цифры</label>
+						<div class="controls">
+							<input type="checkbox" value="1" id="nums">
+						</div>
+					</div>
+					<div class="control-group">
+						<label class="control-label" for="symbols">Символы</label>
+						<div class="controls">
+							<input type="checkbox" value="1" id="symbols">
+							<span class="help-block"><small>(! _ @ # $ % & * [ ] + ?)</small></span>
+						</div>
+					</div>
+					<div class="control-group">
+						<label class="control-label" for="len">Колличество знаков</label>
+						<div class="controls">
+							<input type="text" id="len" placeholder="Колличество" maxlength="2">
+							<span class="help-block"><small>Колличество символов в генерируемом пароле</small></span>
+						</div>
+					</div>
+				    <div class="form-actions">
+                        <button class="btn btn-primary" id="bGen">Генерировать еще</button>
+                        <button class="btn" id="LSclear">Сбросить параметры</button>
+                    </div>
+				</div>
+                <div class="generated well"></div>
+            </div>
+        </div>
+        
+    </body>
+</html>
